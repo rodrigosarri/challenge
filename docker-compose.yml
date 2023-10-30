@@ -1,0 +1,60 @@
+version: "3.8"
+services:
+  localstack:
+    image: localstack/localstack
+    container_name: localstack_demo
+    ports:
+      - "4566-4599:4566-4599"
+      - "8080:8080"
+    environment:
+      - SERVICES=sqs,sns,lambda
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - LAMBDA_EXECUTOR=docker
+      - LAMBDA_DOCKER_NETWORK=localstack-network
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "/path/to/local/folder:/tmp/localstack"
+    networks:
+      - localstack-network
+
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 9rIB2C3fVw4m
+      MYSQL_DATABASE: challenge
+      # MYSQL_USER: user
+      # MYSQL_PASSWORD:
+    volumes:
+      - ./database/mysql/data:/var/lib/mysql
+      - ./database/mysql/init:/docker-entrypoint-initdb.d
+    ports:
+      - "3307:3306"
+    networks:
+      - localstack-network
+
+  app:
+    depends_on:
+      - db
+    build:
+      context: ./api/nodejs
+    env_file:
+      - ./api/nodejs/.env
+    ports:
+      - "3000:3000"
+    environment:
+      API_HOTS: localhost
+      API_PORT: 3000
+      DB_HOST: db
+      DB_USER: app_user
+      DB_NAME: challenge
+      DB_PASS: 9Vh1Xf1oUu2g
+      DB_DIALECT: mysql
+    networks:
+      - localstack-network
+
+networks:
+  localstack-network:
+    driver: bridge

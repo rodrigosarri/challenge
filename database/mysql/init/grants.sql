@@ -1,0 +1,3 @@
+CREATE USER "app_user"@"%" IDENTIFIED BY "9Vh1Xf1oUu2g";
+GRANT ALL PRIVILEGES ON challenge.* TO "app_user"@"%";
+FLUSH PRIVILEGES;
